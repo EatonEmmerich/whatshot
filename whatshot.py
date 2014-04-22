@@ -1,4 +1,5 @@
 
+
 import os
 import urllib
 
@@ -16,6 +17,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 
 DEFAULT_LOCATION_NAME = 'default_location'
+DEFAULT_NAME = 'default_name'
 
 
 # We set a parent key on the 'Greetings' to ensure that they are all in the same
@@ -27,11 +29,12 @@ def location_key(location_name=DEFAULT_LOCATION_NAME):
     return ndb.Key('Location', location_name)
 
 
-class Greeting(ndb.Model):
+class Location(ndb.Model):
     """Models an individual Guestbook entry with author, content, and date."""
     author = ndb.UserProperty()
-    content = ndb.StringProperty(indexed=False)
+    name = ndb.StringProperty(indexed=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
+    votes = ndb.IntegerPropery(indexed=True)
 
 
 
@@ -40,8 +43,8 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         location_name = self.request.get('location_name',
                                           DEFAULT_LOCATION_NAME)
-        greetings_query = Greeting.query(
-            ancestor=location_key(location_name)).order(-Greeting.date)
+        greetings_query = Location.query(
+            ancestor=location_key(location_name)).order(-Location.vote)
         greetings = greetings_query.fetch(10)
 
         if users.get_current_user():
@@ -72,19 +75,37 @@ class Location (webapp2.RequestHandler):
         # should be limited to ~1/second.
         location_name = self.request.get('location_name',
                                           DEFAULT_LOCATION_NAME)
-        greeting = Greeting(parent=location_key(location_name))
+        greeting = Location(parent=location_key(location_name))
 
         if users.get_current_user():
             greeting.author = users.get_current_user()
 
-        greeting.content = self.request.get('content')
+        greeting.name = self.request.get('name')
         greeting.put()
 
         query_params = {'location_name': location_name}
         self.redirect('/?' + urllib.urlencode(query_params))
 
+class VoteUp (webapp2.RequestHandler):
+
+    def post(self):
+	region_name = self.request.get('location_name',DEFAULT_LOCATION_NAME)
+	location_query = Location.query(
+	   ancestor=location_key(region_name))
+	location_name = self.reguest.get('up')
+	location_curr = location_query.filter(name=location_name)
+	#add +1 to votes:
+	location_curr.votes = location_curr.votes +1
+	#update datastore
+	location_curr.put()
+	
+
+class VoteDown (webapp2.RequestHandler):
+
+    def post(self)
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/sign', Location),
+    ('/voteup', VoteUp),
 ], debug=True)

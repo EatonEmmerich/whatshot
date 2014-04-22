@@ -2,6 +2,5 @@ indexes:
 - kind: Location
   ancestor: yes
   properties:
-  - name: date
+  - name: name
     direction: desc
-

@@ -3,22 +3,25 @@
 <html>
   <body>
     {% for greeting in greetings %}
+      <form action = "/VoteUp?up={{ greeting.name }}" method = "post">
+        <input type="submit" value="Up" />
+      </form>
       {% if greeting.author %}
         <b>{{ greeting.author.nickname() }}</b> wrote:
       {% else %}
        An anonymous person wrote:
       {% endif %}
-      <blockquote>{{ greeting.content }}</blockquote>
+      <blockquote>{{ greeting.name }}</blockquote>
     {% endfor %}
 
     <form action="/sign?location_name={{ location_name }}" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
+      <div><textarea name="name" rows="3" cols="60"></textarea></div>
       <div><input type="submit" value="Submit Location"></div>
     </form>
 
     <hr>
 
-    <form>Location name:
+    <form>Region name:
       <input value="{{ location_name }}" name="location_name">
       <input type="submit" value="switch">
     </form>
@@ -28,4 +31,3 @@
   </body>
 </html>
 {% endautoescape %}
-
