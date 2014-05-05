@@ -2,20 +2,33 @@
 {% autoescape true %}
 <html>
   <body>
+  <div style='float:left'>
     {% for greeting in greetings %}
-      <form action = "/VoteUp?up={{ greeting.name }}" method = "post">
+      <form action = "/VoteUp?up={{ greeting.name }}&amp;location_name={{location_name}}" method = "post">
         <input type="submit" value="Up" />
       </form>
+      <form action = "/VoteDown?up={{ greeting.name }}&amp;location_name={{location_name}}" method = "post">
+        <input type="submit" value="Down" />
+      </form>
+       <form action = "/Map?up={{ greeting.name }}&amp;location_name={{location_name}}" method = "post">
+        <input type="submit" value="Map" />
+      </form>
+
       {% if greeting.author %}
         <b>{{ greeting.author.nickname() }}</b> wrote:
       {% else %}
        An anonymous person wrote:
       {% endif %}
-      <blockquote>{{ greeting.name }}</blockquote>
+	<div><div><blockquote><a href={{greeting.url}}>{{ greeting.name }}</a></blockquote></div>
+	<div><font size="2" color="gray">{{ greeting.votes }} Votes</font></div></div>
+	<hr>
     {% endfor %}
-
+Create new location:
     <form action="/sign?location_name={{ location_name }}" method="post">
-      <div><textarea name="name" rows="3" cols="60"></textarea></div>
+      <div>Name:  <input value="" name="name"></div>
+      <a><div>URL:<input type="url" value="" name="url"></div></a>
+      <a><div>Longitude:<input value="" name="longitude"></div></a>
+      <div>Latitude: <input value="" name="latitude"></div>
       <div><input type="submit" value="Submit Location"></div>
     </form>
 
@@ -27,7 +40,18 @@
     </form>
 
     <a href="{{ url|safe }}">{{ url_linktext }}</a>
-
+  </div>
+  <div style='float:right'>
+   <div style='float:top'>
+   MAP:
+    longitude = {{curr_long}}
+    latitude = {{curr_lat}}
+   </div>
+   {% if (curr_lat == 100) %}
+   {% else %}
+   <iframe src="https://maps.google.co.za/maps?ll={{curr_lat}},{{curr_long}}&amp;spn=0.006295,0.006295&amp;output=embed"></iframe>
+    {% endif %}
+  </div>
   </body>
 </html>
 {% endautoescape %}
