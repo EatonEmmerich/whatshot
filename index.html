@@ -39,7 +39,14 @@ Create new location:
       <input type="submit" value="switch">
     </form>
 
-    <a href="{{ url|safe }}">{{ url_linktext }}</a>
+    <a href="{{ url|safe }}">{{ url_linktext }}
+</a>
+  <div>
+	{% if u %}
+	{% else %}
+	    <a href="{{ regurl|safe }}">Register</a>
+	{% endif %}
+  </div>
   </div>
   <div style='float:right'>
    <div style='float:top'>

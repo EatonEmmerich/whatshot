@@ -1,10 +1,9 @@
-
-
 import os
 import urllib
 
-from google.appengine.api import users
+#from google.appengine.api import users
 from google.appengine.ext import ndb
+import LoginAPI as users
 
 import jinja2
 import webapp2
@@ -22,6 +21,7 @@ DEFAULT_VOTE = 0
 DEFAULT_URL = "http://doihaveinternet.com"
 DEFAULT_LAT = 100
 DEFAULT_LONG = 100
+DEFAULT_U = 'FFF'
 
 # We set a parent key on the 'Greetings' to ensure that they are all in the same
 # entity group. Queries across the single entity group will be consistent.
@@ -34,7 +34,7 @@ def location_key(location_name=DEFAULT_LOCATION_NAME):
 
 class Location_ent(ndb.Model):
     """Models an individual Guestbook entry with author, content, and date."""
-    author = ndb.UserProperty()
+    author = ndb.StringProperty()
     name = ndb.StringProperty(indexed=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
     url = ndb.StringProperty()
@@ -51,15 +51,18 @@ class MainPage(webapp2.RequestHandler):
                                           DEFAULT_LOCATION_NAME)
 	curr_lat = self.request.get('lat',DEFAULT_LAT)
 	curr_long = self.request.get('long',DEFAULT_LONG)
+	u = self.request.get('u',DEFAULT_U)
         greetings_query = Location_ent.query(ancestor=location_key(location_name)).order(-Location_ent.votes)
         greetings = greetings_query.fetch(10)
 
-        if users.get_current_user():
+        if users.is_logged_in(u):
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
+
+	regurl = '/register'
 
         template_values = {
             'greetings': greetings,
@@ -68,6 +71,7 @@ class MainPage(webapp2.RequestHandler):
             'url_linktext': url_linktext,
 	    'curr_lat': curr_lat,
 	    'curr_long': curr_long,
+	    'regurl': regurl,
         }
 
         template = JINJA_ENVIRONMENT.get_template('index.html')
@@ -149,6 +153,36 @@ class Map (webapp2.RequestHandler):
         query_params = {'location_name': region_name}
         self.redirect('/?' + urllib.urlencode(query_params)+'&lat='+(curr_lat)+'&long='+(curr_long))
 
+class Login (webapp2.RequestHandler):
+
+     def get(self):
+
+	template_values = {
+	
+	}
+	template = JINJA_ENVIRONMENT.get_template('login.html')
+        self.response.write(template.render(template_values))
+
+     def post(self):
+    
+	query_params = {}
+	self.redirect('/?' + urllib.urlencode(query_params))
+
+class Register (webapp2.RequestHandler):
+    
+    def get(self):
+	template_values = {
+
+	}
+	template = JINJA_ENVIRONMENT.get_template('register.html')
+        self.response.write(template.render(template_values))
+    
+    def post(self):
+
+	query_params = {}
+
+        self.redirect('/?' + urllib.urlencode(query_params))
+
 
 
 application = webapp2.WSGIApplication([
@@ -157,4 +191,6 @@ application = webapp2.WSGIApplication([
     ('/VoteUp', VoteUp),
     ('/VoteDown', VoteDown),
     ('/Map', Map),
+    ('/login', Login),
+    ('/register', Register),
 ], debug=True)
