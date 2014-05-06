@@ -156,7 +156,7 @@ class Map (webapp2.RequestHandler):
 class Login (webapp2.RequestHandler):
 
      def get(self):
-
+	self.response.headers['Content-Type'] = 'text/plain'
 	template_values = {
 	
 	}
@@ -164,7 +164,14 @@ class Login (webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 
      def post(self):
-    
+	self.response.headers['Content-Type'] = 'text/plain'
+	username = self.request.get('id')
+	password = self.request.get('pass')
+
+	u = users.login(username,password)
+	
+        self.response.add_header('Set-Cookie','Loggedin=True;%s' % u)
+
 	query_params = {}
 	self.redirect('/?' + urllib.urlencode(query_params))
 
@@ -180,6 +187,11 @@ class Register (webapp2.RequestHandler):
     def post(self):
 
 	query_params = {}
+	username = self.request.get('id')
+        password = self.request.get('pass')
+	self.response.headers['Content-Type'] = 'text/plain'
+	self.response.add_header('Set-Cookie','Loggedin=True;%s' % u)
+	u = users.create_new_user(username,password)
 
         self.redirect('/?' + urllib.urlencode(query_params))
 

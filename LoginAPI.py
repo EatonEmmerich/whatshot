@@ -1,4 +1,7 @@
 from google.appengine.ext import ndb
+import hmac
+
+SECRET = 'fluffybunny'
 
 class Userdb(ndb.Model):
 	Username = ndb.StringProperty(indexed = True)
@@ -22,8 +25,15 @@ def get_current_user(string):
 	u1 = Userdb.query(Userdb.Username == string).get()
 	return u1.Username
 
-def create(user,pswrd):
+def create_new_user(user,pswrd):
 	usp = Userdb()
 	usp.Username = user
 	usp.Password = pswrd
 	usp.put()
+	return login(user,pswrd)
+
+def login(user,pswrd):
+	return hash_str(user)
+
+def hash_str(s):
+	return hmac.new(SECRET, s).hexdigest()
