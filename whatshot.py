@@ -47,15 +47,17 @@ class Location_ent(ndb.Model):
 class MainPage(webapp2.RequestHandler):
 
     def get(self):
+#	self.response.headers['Content-Type'] = 'text/plain'
         location_name = self.request.get('location_name',
                                           DEFAULT_LOCATION_NAME)
 	curr_lat = self.request.get('lat',DEFAULT_LAT)
 	curr_long = self.request.get('long',DEFAULT_LONG)
-	u = self.request.get('u',DEFAULT_U)
+	u = self.request.cookies.get('u', DEFAULT_U)
+	logged = self.request.cookies.get('Loggedin', 'False')
         greetings_query = Location_ent.query(ancestor=location_key(location_name)).order(-Location_ent.votes)
         greetings = greetings_query.fetch(10)
-
-        if users.is_logged_in(u):
+	
+        if logged == 'True':
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
@@ -72,6 +74,7 @@ class MainPage(webapp2.RequestHandler):
 	    'curr_lat': curr_lat,
 	    'curr_long': curr_long,
 	    'regurl': regurl,
+	    'Loggedin': logged,
         }
 
         template = JINJA_ENVIRONMENT.get_template('index.html')
@@ -156,7 +159,7 @@ class Map (webapp2.RequestHandler):
 class Login (webapp2.RequestHandler):
 
      def get(self):
-	self.response.headers['Content-Type'] = 'text/plain'
+	#self.response.headers['Content-Type'] = 'text/plain'
 	template_values = {
 	
 	}
@@ -167,19 +170,41 @@ class Login (webapp2.RequestHandler):
 	self.response.headers['Content-Type'] = 'text/plain'
 	username = self.request.get('id')
 	password = self.request.get('pass')
+	u,success = users.login(username,password)
+	if(success):
+	    print '#########################################################'
+	    print u
+	    print '#########################################################'
+	    self.response.headers.add_header('Set-Cookie','Loggedin=%s' % success)
+	    self.response.headers.add_header('Set-Cookie','u=%s' % u)
 
-	u = users.login(username,password)
-	
-        self.response.add_header('Set-Cookie','Loggedin=True;%s' % u)
+	    query_params = {}
+	    self.redirect('/?' + urllib.urlencode(query_params))
+	else:
+	    
+		message = 'UserID/Password mismatch'
+	    query_params = {
+	    'message': message
+	    }
+            self.redirect('/login?' + urllib.urlencode(query_params))
 
+class Logout (webapp2.RequestHandler):
+
+    def get(self):
+	self.response.headers['Content-Type'] = 'text/plain'
+	self.response.headers.add_header('Set-Cookie','Loggedin=False')
+	self.response.headers.add_header('Set-Cookie','u=deleted; Expires=Thu, 01-Jan-1970 00:00:00 GMT')
 	query_params = {}
 	self.redirect('/?' + urllib.urlencode(query_params))
+
 
 class Register (webapp2.RequestHandler):
     
     def get(self):
+	message = self.request.get('message','')
+        print message
 	template_values = {
-
+	    'message': message,
 	}
 	template = JINJA_ENVIRONMENT.get_template('register.html')
         self.response.write(template.render(template_values))
@@ -190,11 +215,15 @@ class Register (webapp2.RequestHandler):
 	username = self.request.get('id')
         password = self.request.get('pass')
 	self.response.headers['Content-Type'] = 'text/plain'
-	self.response.add_header('Set-Cookie','Loggedin=True;%s' % u)
-	u = users.create_new_user(username,password)
-
-        self.redirect('/?' + urllib.urlencode(query_params))
-
+	u = users.hash_str(username)
+	if(users.is_unique_id(u)):
+	    self.response.headers.add_header('Set-Cookie','Loggedin=True')
+	    self.response.headers.add_header('Set-Cookie','u=%s' % u)
+	    users.create_new_user(username,password)
+	    self.redirect('/?' + urllib.urlencode(query_params))
+	else:
+	    message = 'The username already exists'
+	    self.redirect('/register?message=' + message)
 
 
 application = webapp2.WSGIApplication([
@@ -205,4 +234,5 @@ application = webapp2.WSGIApplication([
     ('/Map', Map),
     ('/login', Login),
     ('/register', Register),
+    ('/logout', Logout),
 ], debug=True)

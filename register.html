@@ -4,19 +4,39 @@
   <body>
 <center>
 <table bgcolor="white" cellpadding="12" border="1">
-<tr>
-<td colspan="2">
-<center><h1><i><b>Register Area</b></i></h1></center></td></tr>
-<tr><td><h1><i><b>UserID:</b></i></h1></td><td>
-<form name="register" action="\register" method="post">
-<input name="id" type="text">
-</td></tr>
-<tr><td><h1><i><b>Password:</b></i></h1></td><td>
-<input name="pass" type="password">
-</td></tr>
-<tr><td><center
-><input type="submit" value="Register">
-</center></td></form></td></tr></table></center> 
+	<tr>
+	<td colspan="2">
+	<center><h1><i><b>Register Area</b></i></h1></center>
+	</td>
+	</tr>
+	<tr>
+	<td>
+	<h1><i><b>UserID:</b></i></h1>
+	</td>
+	<td>
+	<form name="register" action="\register" method="post">
+	<input name="id" type="text">
+	</td>
+	</tr>
+	<tr>
+	<td>
+	<h1><i><b>Password:</b></i></h1>
+	</td>
+	<td>
+	<input name="pass" type="password">
+	</td>
+	</tr>
+	<tr>
+	<td colspan="2">
+	<center><input type="submit" value="Register"></center>
+	</td>
+	</form>
+	</tr>
+</table>
+</center> 
+<center style='color:rgb(255,0,0)'>
+{{ message }}
+</center>
   </body>
 </html>
 {% endautoescape %}

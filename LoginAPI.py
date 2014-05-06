@@ -7,14 +7,6 @@ class Userdb(ndb.Model):
 	Username = ndb.StringProperty(indexed = True)
 	Password = ndb.StringProperty()
 
-def is_logged_in(string):
-	u1 = Userdb.query(Userdb.Username == string).get()
-	print u1
-	if u1 == None:
-		return False
-	else:
-		return True
-
 def create_login_url(string):
 	return '/login'
 
@@ -27,13 +19,30 @@ def get_current_user(string):
 
 def create_new_user(user,pswrd):
 	usp = Userdb()
-	usp.Username = user
-	usp.Password = pswrd
+	u = hash_str(user)
+	usp.Username = u
+	usp.Password = hash_str(pswrd)
 	usp.put()
 	return login(user,pswrd)
 
 def login(user,pswrd):
-	return hash_str(user)
+	s = hash_str(user)
+	u1 = Userdb.query(Userdb.Username == s).get()
+	if(is_unique_id(s) == False):
+		if(u1.Password == hash_str(pswrd)):
+			return s,True
+		else:
+			return None,False
+	else:
+		None,None
 
 def hash_str(s):
 	return hmac.new(SECRET, s).hexdigest()
+
+def is_unique_id(s):
+	u1 = Userdb.query(Userdb.Username == s).get()
+	if(u1 == None):
+		return True
+	else:
+	#print 'IT\'S False!'
+		return False

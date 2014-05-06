@@ -42,7 +42,7 @@ Create new location:
     <a href="{{ url|safe }}">{{ url_linktext }}
 </a>
   <div>
-	{% if u %}
+	{% if (Loggedin == 'True') %}
 	{% else %}
 	    <a href="{{ regurl|safe }}">Register</a>
 	{% endif %}
